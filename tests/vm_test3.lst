@@ -1,0 +1,23 @@
+Address Instruction
+     0: STRA 
+     1: ADDI $sp, 0, 30
+     2: SRI $sp, 1
+     3: ADDI $sp, 0, 20
+     4: ADDI $sp, 0, 10
+     5: BNE $sp, 1, 3	# target is word address 8
+     6: CALL 10	# target is word address 10
+     7: JMPA 18	# target is word address 18
+     8: CALL 13	# target is word address 13
+     9: JMPA 18	# target is word address 18
+    10: NOTR 
+    11: PSTR $gp, 1
+    12: RTN 
+    13: NOTR 
+    14: PSTR $gp, 2
+    15: RTN 
+    16: STRA 
+    17: EXIT 1
+    18: STRA 
+    19: EXIT 0
+    1024: 33	    1025: 2649	    1026: 683854	    1027: 0	        ...     
+

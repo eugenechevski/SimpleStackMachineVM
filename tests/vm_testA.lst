@@ -1,0 +1,16 @@
+Address Instruction
+     0: SRI $sp, 1
+     1: XORI $sp, 0, 0xffff
+     2: LIT $sp, -1, 255
+     3: BORI $sp, -1, 0xff00
+     4: BNE $sp, -1, 5	# target is word address 9
+     5: NOTR 
+     6: PSTR $gp, 0
+     7: STRA 
+     8: EXIT 0
+     9: NOTR 
+    10: PSTR $gp, 1
+    11: STRA 
+    12: EXIT 1
+    1024: 2649	    1025: 683886	    1026: 10	    1027: 0	        ...     
+

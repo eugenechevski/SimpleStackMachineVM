@@ -1,0 +1,38 @@
+Address Instruction
+     0: ADDI $sp, 0, 7
+     1: ADDI $sp, -1, 15
+     2: ARI $sp, -1
+     3: LWR $r4, $gp, 0
+     4: AND $sp, 0, $sp, 0
+     5: SLL $sp, 0, 5
+     6: ADDI $sp, 0, -405
+     7: SRI $sp, 1
+     8: ADDI $sp, 0, 2
+     9: SLL $sp, 0, 7
+    10: SRL $sp, 0, 2
+    11: ARI $sp, -1
+    12: LIT $sp, 0, 11
+    13: LWR $r5, $sp, 0
+    14: XOR $sp, 0, $sp, 0
+    15: SWR $sp, 0, $r5
+    16: NEG $sp, 0, $sp, 0
+    17: LIT $sp, 1, 75
+    18: ARI $sp, 1
+    19: BNE $sp, 1, 3	# target is word address 22
+    20: CALL 26	# target is word address 26
+    21: JMPA 24	# target is word address 24
+    22: CALL 30	# target is word address 30
+    23: JMPA 25	# target is word address 25
+    24: EXIT 0
+    25: EXIT 1
+    26: NOTR 
+    27: PSTR $gp, 5
+    28: STRA 
+    29: RTN 
+    30: NOTR 
+    31: PSTR $gp, 1
+    32: STRA 
+    33: RTN 
+     512: 2	     513: 683854	     514: 76	     515: 72	     516: 10	
+     517: 561210713	     518: 10	     519: 0	        ...     
+

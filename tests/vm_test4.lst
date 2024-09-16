@@ -1,0 +1,43 @@
+Address Instruction
+     0: NOTR 
+     1: STRA 
+     2: ADDI $sp, 0, 5
+     3: ADDI $sp, -1, 2
+     4: ARI $sp, -1
+     5: ADD $sp, 0, $sp, 1
+     6: MUL $sp, 1
+     7: SRI $sp, 1
+     8: CFLO $sp, 0
+     9: SUB $sp, 0, $sp, 1
+    10: MUL $sp, 2
+    11: SRI $sp, 1
+    12: CFLO $sp, 0
+    13: SRI $sp, 1
+    14: CPW $sp, 0, $sp, 2
+    15: DIV $sp, 4
+    16: SRI $sp, 2
+    17: CFLO $sp, 0
+    18: CFHI $sp, 1
+    19: SRI $sp, 1
+    20: ADDI $sp, 0, 5
+    21: BEQ $sp, 1, 2	# target is word address 23
+    22: CALL 35	# target is word address 35
+    23: CALL 31	# target is word address 31
+    24: ARI $sp, 1
+    25: SWR $sp, 0, $r4
+    26: ADDI $sp, 0, 3
+    27: BEQ $sp, 1, 2	# target is word address 29
+    28: CALL 35	# target is word address 35
+    29: CALL 31	# target is word address 31
+    30: EXIT 0
+    31: NOTR 
+    32: PSTR $gp, 0
+    33: STRA 
+    34: RTN 
+    35: NOTR 
+    36: PSTR $gp, 1
+    37: STRA 
+    38: EXIT 1
+    39: RTN 
+     512: 2681	     513: 683886	     514: 0	        ...     
+

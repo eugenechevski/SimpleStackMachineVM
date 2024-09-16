@@ -1,0 +1,26 @@
+Address Instruction
+     0: ADDI $sp, -1, 1
+     1: CPW $sp, 0, $sp, -1
+     2: SLL $sp, -1, 20
+     3: SRI $sp, 1
+     4: ADD $sp, 0, $gp, 0
+     5: SRI $sp, 1
+     6: LIT $sp, 0, 4
+     7: LWR $r4, $sp, 0
+     8: LIT $sp, 0, 14
+     9: LWR $r5, $sp, 0
+    10: SWR $sp, -1, $r4
+    11: ARI $sp, -2
+    12: SWR $sp, 0, $r5
+    13: DIV $sp, 1
+    14: CFLO $gp, 2
+    15: CFHI $gp, 1
+    16: SRI $sp, 1
+    17: LIT $sp, 0, 1
+    18: SLL $sp, 0, 10
+    19: MUL $sp, 0
+    20: CFHI $sp, -2
+    21: CFLO $sp, -1
+    22: SRI $sp, 2
+    23: EXIT 0
+    1024: 1	    1025: 0	        ...     

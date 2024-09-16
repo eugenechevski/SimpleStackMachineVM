@@ -1,0 +1,40 @@
+Address Instruction
+     0: SRI $sp, 6
+     1: LIT $sp, 6, 7
+     2: LWR $ra, $sp, 6
+     3: LIT $sp, 5, 6
+     4: LWR $r6, $sp, 5
+     5: LIT $sp, 4, 5
+     6: LWR $r5, $sp, 4
+     7: LIT $sp, 3, 4
+     8: LWR $r4, $sp, 3
+     9: LIT $sp, 2, 3
+    10: LWR $r3, $sp, 2
+    11: LIT $sp, 1, 2
+    12: SCA $sp, 0, $sp, 0
+    13: CALL 24	# target is word address 24
+    14: SRI $sp, 1
+    15: LIT $sp, 0, -1
+    16: LWR $r6, $sp, 0
+    17: LWR $r5, $sp, 0
+    18: LWR $r4, $sp, 0
+    19: LWR $r3, $sp, 0
+    20: ARI $sp, 1
+    21: CALL 31	# target is word address 31
+    22: EXIT 0
+    23: EXIT 1
+    24: SRI $sp, 5
+    25: SWR $sp, 4, $fp
+    26: SWR $sp, 3, $r3
+    27: SWR $sp, 2, $r4
+    28: SWR $sp, 1, $r5
+    29: SWR $sp, 0, $r6
+    30: RTN 
+    31: LWR $r6, $sp, 0
+    32: LWR $r5, $sp, 1
+    33: LWR $r4, $sp, 2
+    34: LWR $r3, $sp, 3
+    35: LWR $fp, $sp, 4
+    36: ARI $sp, 5
+    37: RTN 
+    1024: 0	        ...     
