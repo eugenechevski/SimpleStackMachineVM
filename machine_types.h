@@ -13,13 +13,13 @@ typedef uint8_t opcode_type;
 typedef uint8_t reg_num_type;
 typedef uint8_t func_type;
 
-// machine words, assuming ints are 32 bits
-typedef int word_type;
+/* machine words, assuming ints are 32 bits*/
+/*typedef int word_type;*/
 
-// unsigned machine words
-typedef unsigned int uword_type;
+/* unsigned machine words*/
+/*typedef unsigned int uword_type;*/
 
-// addresses
+/* addresses*/
 typedef unsigned int address_type;
 
 #endif

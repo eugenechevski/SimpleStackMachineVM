@@ -11,7 +11,7 @@ vm: $(VM_OBJECTS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(VM_OBJECTS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -f *.o vm tests/*.myo tests/*.myp submission.zip

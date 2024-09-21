@@ -3,6 +3,6 @@
 
 #include "machine_types.h"
 
-// TODO: Define VM structures and function prototypes here
+/* TODO, Define VM structures and function prototypes here*/
 
 #endif
