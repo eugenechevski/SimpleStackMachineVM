@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 {
     const char *cmdname = argv[0];
     bool print_program = false;
-    char *suffix = strchr(argv[0], '.');
+    char *suffix;
     FILE *bf;
 
     argc--;
@@ -45,18 +45,21 @@ int main(int argc, char *argv[])
         usage(cmdname);
     }
 
+    suffix = strchr(argv[0], '.');
     if (suffix == NULL || strcmp(suffix, ".bof") != 0)
     {
         usage(cmdname);
     }
-    printf("Something??\n");
 
     bf = bof_read_open(argv[0]);
-    /* BOFHeader bf = bof_read_open(argv[0]);*/
+    if (!bf)
+    {
+        return EXIT_FAILURE;
+    }
 
-    /*machine_load(bf);
+    /* machine_load(bf);*/
 
-     if printing, don't run the program
+    /*if printing, don't run the program
     if (print_program)
     {
         machine_print_loaded_program(stdout);
@@ -64,5 +67,6 @@ int main(int argc, char *argv[])
     }
 
     machine_run(should_trace);*/
+    fclose(bf);
     return 0;
 }
