@@ -1,34 +1,36 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "vm.h"
 #include "utilities.h"
+#include "instruction.h"
+#include "bof.h"
 
-void vm_init(VM *vm) {
-    // Initialize memory and registers to 0
-    for (int i = 0; i < MEMORY_SIZE_IN_WORDS; i++) {
-        vm->memory[i] = 0;
-    }
-    for (int i = 0; i < NUM_REGISTERS; i++) {
-        vm->registers[i] = 0;
-    }
+void vm_init(VM *vm)
+{
+    memset(vm->memory, 0, sizeof(vm->memory));
+    memset(vm->registers, 0, sizeof(vm->registers));
     vm->pc = 0;
     vm->hi = 0;
     vm->lo = 0;
 }
 
-void vm_load_program(VM *vm, BOFFILE bf) {
+void vm_load_program(VM *vm, BOFFILE bf)
+{
     BOFHeader header = bof_read_header(bf);
-    
+
     // Load instructions
-    for (int i = 0; i < header.text_length; i++) {
-        vm->memory[i] = bof_read_word(bf);
+    for (int i = 0; i < header.text_length; i++)
+    {
+        vm->memory[header.text_start_address + i] = bof_read_word(bf);
     }
-    
+
     // Load data
-    for (int i = 0; i < header.data_length; i++) {
+    for (int i = 0; i < header.data_length; i++)
+    {
         vm->memory[header.data_start_address + i] = bof_read_word(bf);
     }
-    
+
     // Set initial register values
     vm->pc = header.text_start_address;
     vm->registers[0] = header.data_start_address; // $gp
@@ -36,58 +38,115 @@ void vm_load_program(VM *vm, BOFFILE bf) {
     vm->registers[2] = header.stack_bottom_addr;  // $fp
 }
 
-void vm_run(VM *vm) {
-    while (1) {
+void vm_print_state(VM *vm)
+{
+    printf("PC: %u\n", vm->pc);
+    for (int i = 0; i < NUM_REGISTERS; i++)
+    {
+        printf("GPR[$%s]: %d ", regname_get(i), vm->registers[i]);
+        if ((i + 1) % 4 == 0)
+            printf("\n");
+    }
+    printf("\n");
+    // Print memory contents (you may want to limit this to relevant sections)
+    // ...
+}
+
+void vm_run(VM *vm)
+{
+    bool tracing = true;
+    while (1)
+    {
+        if (tracing)
+            vm_print_state(vm);
+
         // Fetch instruction
-        bin_instr_t instr = *(bin_instr_t*)&vm->memory[vm->pc];
-        
+        bin_instr_t instr = *(bin_instr_t *)&vm->memory[vm->pc];
+
+        // Print the current instruction
+        printf("==> %u: %s\n", vm->pc, instruction_assembly_form(vm->pc, instr));
+
         // Increment PC
         vm->pc++;
-        
+
         // Decode and execute instruction
-        switch (instruction_type(instr)) {
-            case comp_instr_type:
-                // Handle computational instructions
-                break;
-            case other_comp_instr_type:
-                // Handle other computational instructions
-                break;
-            case immed_instr_type:
-                // Handle immediate instructions
-                break;
-            case jump_instr_type:
-                // Handle jump instructions
-                break;
-            case syscall_instr_type:
-                // Handle system call instructions
-                if (instr.syscall.code == exit_sc) {
-                    return; // Exit the VM
-                }
-                break;
-            default:
-                bail_with_error("Unknown instruction type");
+        switch (instruction_type(instr))
+        {
+        case comp_instr_type:
+            vm_execute_comp_instr(vm, instr.comp);
+            break;
+        case other_comp_instr_type:
+            vm_execute_other_comp_instr(vm, instr.othc);
+            break;
+        case immed_instr_type:
+            vm_execute_immed_instr(vm, instr.immed);
+            break;
+        case jump_instr_type:
+            vm_execute_jump_instr(vm, instr.jump);
+            break;
+        case syscall_instr_type:
+            if (vm_execute_syscall(vm, instr.syscall) == 1)
+            {
+                return; // Exit the VM
+            }
+            break;
+        default:
+            bail_with_error("Unknown instruction type");
         }
     }
 }
 
-void vm_print_program(VM *vm) {
-    // Print the loaded program
+// Implement these functions next
+void vm_execute_comp_instr(VM *vm, comp_instr_t instr)
+{
+    // TODO: Implement computational instructions
+}
+
+void vm_execute_other_comp_instr(VM *vm, other_comp_instr_t instr)
+{
+    // TODO: Implement other computational instructions
+}
+
+void vm_execute_immed_instr(VM *vm, immed_instr_t instr)
+{
+    // TODO: Implement immediate instructions
+}
+
+void vm_execute_jump_instr(VM *vm, jump_instr_t instr)
+{
+    // TODO: Implement jump instructions
+}
+
+int vm_execute_syscall(VM *vm, syscall_instr_t instr)
+{
+    // TODO: Implement system calls
+    return 0;
+}
+
+void vm_print_program(VM *vm)
+{
     printf("Address Instruction\n");
-    for (int i = 0; vm->memory[i] != 0; i++) {
-        bin_instr_t instr = *(bin_instr_t*)&vm->memory[i];
-        printf("%d: %s\n", i, instruction_assembly_form(i, instr));
+    for (unsigned int i = 0; i < MEMORY_SIZE_IN_WORDS; i++)
+    {
+        bin_instr_t instr = *(bin_instr_t *)&vm->memory[i];
+        if (instruction_type(instr) == error_instr_type)
+            break;
+        printf("%u: %s\n", i, instruction_assembly_form(i, instr));
     }
 }
 
-int main(int argc, char *argv[]) {
-    if (argc < 2) {
+int main(int argc, char *argv[])
+{
+    if (argc < 2)
+    {
         bail_with_error("Usage: %s [-p] <bof_file>", argv[0]);
     }
 
     bool print_mode = false;
     char *filename = argv[1];
 
-    if (argc == 3 && strcmp(argv[1], "-p") == 0) {
+    if (argc == 3 && strcmp(argv[1], "-p") == 0)
+    {
         print_mode = true;
         filename = argv[2];
     }
@@ -97,9 +156,12 @@ int main(int argc, char *argv[]) {
     vm_init(&vm);
     vm_load_program(&vm, bf);
 
-    if (print_mode) {
+    if (print_mode)
+    {
         vm_print_program(&vm);
-    } else {
+    }
+    else
+    {
         vm_run(&vm);
     }
 
