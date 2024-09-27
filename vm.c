@@ -1,10 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include "vm.h"
 #include "utilities.h"
 #include "instruction.h"
+#include "machine_types.h"
+#include "regname.h"
 #include "bof.h"
+
+// Helper function to get memory address
+static inline word_type* get_memory_address(VM *vm, reg_num_type reg, offset_type offset) {
+    return &vm->memory[vm->registers[reg] + machine_types_formOffset(offset)];
+}
+
+static inline word_type* get_p(VM *vm, reg_num_type reg){
+        return &vm->memory[vm->registers[reg]];
+}
 
 void vm_init(VM *vm) {
     memset(vm->memory, 0, sizeof(vm->memory));
@@ -34,69 +46,195 @@ void vm_load_program(VM *vm, BOFFILE bf) {
     vm->registers[2] = header.stack_bottom_addr;  // $fp
 }
 
+void vm_print_words(VM *vm) {
+    word_type address = vm->registers[0];  // Correct access to registers array
+    int count = 0;  // Use a counter for formatting
+    printf("    ");
+
+    // Loop through memory up to the stack pointer (registers[1] = $sp)
+    //Changed from <= to <
+    while (address < vm->registers[2]) {
+        // Print memory address and value
+        printf("%3d: %d         ", address, vm->memory[address]);
+        count++;
+        
+        // Print a newline every 4 values for readability
+        if (count % 5 == 0) printf("\n");
+        
+        // Detect blocks of zeros and print "..."
+        if (address < vm-> registers[2] - 2 && vm->memory[address] == 0 && vm->memory[address + 1] == 0) {
+            printf("...         ");
+            // Skip over consecutive zeros
+            while (vm->memory[address] == 0 && vm->memory[address + 1] == 0 && address < vm->registers[2] - 1) {
+                address++;
+            }
+        }
+        
+        // Move to the next memory address
+        address++;
+    }
+    printf("\n");
+}
+
+
 void vm_print_state(VM *vm) {
-    printf("PC: %u\n", vm->pc);
+    
+    printf("      PC: %u\n", vm->pc);
     for (int i = 0; i < NUM_REGISTERS; i++) {
-        printf("GPR[$%s]: %d ", regname_get(i), vm->registers[i]);
-        if ((i + 1) % 4 == 0) printf("\n");
+        printf("GPR[%s]: %-6d", regname_get(i), vm->registers[i]);
+        if ((i + 1) % 5 == 0) printf("\n");
     }
     printf("\n");
     // Print memory contents (you may want to limit this to relevant sections)
     // ...
+    vm_print_words(vm);
+
 }
 
-void vm_run(VM *vm) {
-    bool tracing = true;
-    while (1) {
-        if (tracing) vm_print_state(vm);
-
-        // Fetch instruction
-        bin_instr_t instr = *(bin_instr_t*)&vm->memory[vm->pc];
+void vm_execute_comp_instr(VM *vm, comp_instr_t instr)
+{
+ word_type *target = get_memory_address(vm, instr.rt, instr.ot);
+ word_type *sp = get_p(vm, 1);                       
+ word_type *s_os = get_memory_address(vm, instr.rs, instr.os);
+ 
+ switch (instr.func) {
+        case NOP_F:
+            break;
+        case ADD_F:
+        *target =  *sp + *s_os; 
+            break;
+        case SUB_F:
+        *target = *sp - *s_os;
+            break;
+        case CPW_F:
+        *target = *s_os;
+            break;    
+        case AND_F:
+        *target = *sp & *s_os;
+            break;
         
-        // Print the current instruction
-        printf("==> %u: %s\n", vm->pc, instruction_assembly_form(vm->pc, instr));
+        case BOR_F:
+        *target = *sp | *s_os;
+            break;
+        case NOR_F:
+        *target = ~(*sp | *s_os);
+            break;
+        case XOR_F:
+         *target = *sp ^ *s_os;
+            break;
+        case LWR_F:
+            vm->registers[instr.rt] = *s_os;
+            break;
 
-        // Increment PC
-        vm->pc++;
-        
-        // Decode and execute instruction
-        switch (instruction_type(instr)) {
-            case comp_instr_type:
-                vm_execute_comp_instr(vm, instr.comp);
-                break;
-            case other_comp_instr_type:
-                vm_execute_other_comp_instr(vm, instr.othc);
-                break;
-            case immed_instr_type:
-                vm_execute_immed_instr(vm, instr.immed);
-                break;
-            case jump_instr_type:
-                vm_execute_jump_instr(vm, instr.jump);
-                break;
-            case syscall_instr_type:
-                if (vm_execute_syscall(vm, instr.syscall) == 1) {
-                    return; // Exit the VM
-                }
-                break;
-            default:
-                bail_with_error("Unknown instruction type");
-        }
+        case SWR_F:
+            *target = vm->registers[instr.rs];
+            break;
+        case SCA_F:
+            *target = vm->registers[instr.rs] + machine_types_formOffset(instr.os);
+            break;
+        case LWI_F:
+        *target = vm->memory[*s_os];
+            break;
+
+        case NEG_F:
+            *target = -(*s_os);
+            break;
+
+        default:
+            bail_with_error("Unknown immediate instruction opcode: %d", instr.op);
     }
 }
 
-// Helper function to get memory address
-static inline word_type* get_memory_address(VM *vm, reg_num_type reg, offset_type offset) {
-    return &vm->memory[vm->registers[reg] + machine_types_formOffset(offset)];
+void vm_execute_other_comp_instr(VM *vm, other_comp_instr_t instr)
+{
+    word_type *target = get_memory_address(vm, instr.reg, instr.offset);
+
+    word_type *sp = get_p(vm, 1);  
+    
+    int64_t temp;
+    //printf("\n\n\n\\n\n\n %d \n\n\n\n\n\n", instr.op);
+    switch (instr.func) {
+        case LIT_F:
+            *target = machine_types_sgnExt(instr.arg);
+            break;
+
+        case ARI_F:
+            vm->registers[instr.reg] += machine_types_sgnExt(instr.arg);
+            break;
+
+        case SRI_F:
+            //printf("    I am here    \n\n\n");
+            vm->registers[instr.reg] -= machine_types_sgnExt(instr.arg);
+            break;
+
+        case MUL_F:
+
+            temp = (int32_t)*sp * (int32_t)*target;
+
+            vm->hi = ((temp >> 32) & 0xFFFFFFFF);
+            vm->lo = (temp & 0xFFFFFFFF);
+
+            break;
+
+        case DIV_F:
+            vm->hi = *sp % *target;
+            vm->lo = *sp / *target;
+            break;
+
+        case CFHI_F:
+            *target = vm->hi;
+            break;
+
+        case CFLO_F:
+            *target = vm->lo;
+            break;
+
+        case SLL_F:
+            *target = *sp << instr.arg;
+            break;
+
+        case SRL_F:
+            *target = *sp >> instr.arg;
+            break;
+
+        case JMP_F:
+            vm->pc = *target;
+            break;
+
+        case CSI_F:
+            vm->registers[7] = vm->pc;
+            vm->pc = *target;
+            break;
+
+        case JREL_F:
+            vm->pc = ((vm->pc - 1) + machine_types_formOffset(instr.arg));
+            break;
+
+        default:
+            bail_with_error("Unknown immediate instruction opcode: %d", instr.op);
+    }
+
 }
 
-// Implement these functions next
-void vm_execute_comp_instr(VM *vm, comp_instr_t instr) {
-    // TODO: Implement computational instructions
+void vm_execute_jump_instr(VM *vm, jump_instr_t instr)
+{
+    switch (instr.op)
+    {
+    case JMPA_O:
+        vm->pc += machine_types_formAddress(vm->pc, instr.op);
+        break;
+    case CALL_O:
+        vm->registers[RA] = vm->pc;
+        vm->pc += machine_types_formAddress(vm->pc, instr.op);
+        break;
+    case RTN_O:
+        vm->pc = vm->registers[RA];
+        break;
+    default:
+        bail_with_error("Unknown immediate instruction opcode: %d", instr.op);
+    }
 }
 
-void vm_execute_other_comp_instr(VM *vm, other_comp_instr_t instr) {
-    // TODO: Implement other computational instructions
-}
 
 void vm_execute_immed_instr(VM *vm, immed_instr_t instr) {
     word_type *target = get_memory_address(vm, instr.reg, instr.offset);
@@ -152,22 +290,85 @@ void vm_execute_immed_instr(VM *vm, immed_instr_t instr) {
     }
 }
 
-void vm_execute_jump_instr(VM *vm, jump_instr_t instr) {
-    // TODO: Implement jump instructions
+int vm_execute_syscall(VM *vm, bool *tracing, syscall_instr_type instr)
+{
+    if ( instr.syscall.code == 1) {
+        execute = false;
+        return 1; // Exit the VM
+    }else if(instr.syscall.code == 2){
+        word_type *sp = get_p(vm, 1); 
+        char *str = (char *)get_memory_address(vm, instr.syscall.reg, instr.syscaoffset);
+        *sp = printf("%s", str
+    }else if(instr.syscall.code == 4){
+        word_type *sp = get_p(vm, 1); 
+        int ch = *(get_memory_address(vm, instr.syscall.reg, instr.syscall.offset));
+        *sp = fputc(ch, stdout);
+    }else if(instr.syscall.code == 5){
+        word_type *target = get_memory_address(vm, instr.syscall.reg, instr.syscaoffset);
+        *target = getc(stdin);
+    }else if(instr.syscall.code == 2046){
+        tracing = true;
+    }else if(instr.syscall.code == 2047){
+        tracing = false;
+    }
 }
 
-int vm_execute_syscall(VM *vm, syscall_instr_t instr) {
-    // TODO: Implement system calls
-    return 0;
+void vm_run(VM *vm) {
+    bool tracing = true;
+    while (1) {
+        if (tracing) vm_print_state(vm);
+
+        // Fetch instruction
+        bin_instr_t instr = *(bin_instr_t*)&vm->memory[vm->pc];
+        
+        // Print the current instruction
+        printf("==> %u: %s\n", vm->pc, instruction_assembly_form(vm->pc, instr));
+
+        // Increment PC
+        vm->pc++;
+        
+        // Decode and execute instruction
+        switch (instruction_type(instr)) {
+            case comp_instr_type:
+                vm_execute_comp_instr(vm, instr.comp);
+                break;
+            case other_comp_instr_type:
+                vm_execute_other_comp_instr(vm, instr.othc);
+                break;
+            case immed_instr_type:
+                vm_execute_immed_instr(vm, instr.immed);
+                break;
+            case jump_instr_type:
+                vm_execute_jump_instr(vm, instr.jump);
+                break;
+            case syscall_instr_type:
+                if (vm_execute_syscall(vm, &tracing, instr.syscall) == 1) {
+                    return; // Exit the VM
+                }
+                break;
+            default:
+                bail_with_error("Unknown instruction type");
+        }
+    }
 }
 
 void vm_print_program(VM *vm) {
     printf("Address Instruction\n");
-    for (unsigned int i = 0; i < MEMORY_SIZE_IN_WORDS; i++) {
-        bin_instr_t instr = *(bin_instr_t*)&vm->memory[i];
+    for (unsigned int i = 0; i < vm->text_length; i++) {
+        bin_instr_t instr = *(bin_instr_t*)&vm->instructions[i];
+
         if (instruction_type(instr) == error_instr_type) break;
-        printf("%u: %s\n", i, instruction_assembly_form(i, instr));
+        
+        //if statements to help provide correct spacing
+        if(i < 10){
+          printf("     %u: %s\n", i, instruction_assembly_form(i, instr));
+        }
+        else{
+          printf("    %u: %s\n", i, instruction_assembly_form(i, instr));
+        }
     }
+    
+    vm_print_words(vm);
 }
 
 int main(int argc, char *argv[]) {
