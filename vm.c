@@ -69,13 +69,12 @@ void vm_print_tracing_words(VM *vm)
 
     while (address < vm->registers[2])
     {
-        printf("%3d: %d         ", address, vm->memory.words[address]);
+        printf("%3d: %-10d", address, vm->memory.words[address]);
         count++;
 
-        if (count % 4 == 0) // change back to 4 if necessary
+        if (count % 5 == 0)
         {
-            printf("\n");
-            printf("    ");
+            printf("\n    ");
         }
 
         if (address < vm->registers[2] - 2 && vm->memory.words[address] == 0 && vm->memory.words[address + 1] == 0)
@@ -90,14 +89,17 @@ void vm_print_tracing_words(VM *vm)
         address++;
     }
 
-    printf("\n");
-    printf("    ");
+    printf("\n    ");
     printf("%3d: %d\n\n", address, vm->memory.words[address]);
 }
 
 void vm_print_state(VM *vm)
 {
     printf("      PC: %u\n", vm->pc);
+    if (vm->hi != 0 || vm->lo != 0)
+    {
+        printf("      HI: %d\tLO: %d\n", vm->hi, vm->lo);
+    }
     for (int i = 0; i < NUM_REGISTERS; i++)
     {
         printf("GPR[%s]: %-6d", regname_get(i), vm->registers[i]);
@@ -106,10 +108,14 @@ void vm_print_state(VM *vm)
     }
     printf("\n");
 
-    // Print memory contents (you may want to limit this to relevant sections)
     vm_print_tracing_words(vm);
 }
-
+uword_type twosComplement(uword_type target)
+{
+    uword_type toConvert = target;
+    target = ~toConvert + 1;
+    return target;
+}
 void vm_execute_comp_instr(VM *vm, comp_instr_t instr)
 {
     word_type *target_signed = get_memory_address_signed(vm, instr.rt, instr.ot);
@@ -261,48 +267,48 @@ void vm_execute_immed_instr(VM *vm, immed_instr_t instr)
         *target_unsigned &= machine_types_zeroExt(instr.immed);
         break;
     case BORI_O:
-        *target_unsigned |= machine_types_zeroExt(instr.immed);
+        *target_unsigned |= machine_types_zeroExt(instr.immed) & 0xFFFF;
         break;
     case NORI_O:
         *target_unsigned = ~(*target_unsigned | machine_types_zeroExt(instr.immed));
         break;
     case XORI_O:
-        *target_unsigned ^= machine_types_zeroExt(instr.immed);
+        *target_unsigned ^= machine_types_zeroExt(instr.immed) & 0xFFFF;
         break;
     case BEQ_O:
         if (*get_p_signed(vm, SP) == *target_signed)
         {
-            vm->pc += machine_types_formOffset(instr.immed);
+            vm->pc = (vm->pc - 1) + machine_types_formOffset(instr.immed);
         }
         break;
     case BGEZ_O:
         if (*target_signed >= 0)
         {
-            vm->pc += machine_types_formOffset(instr.immed);
+            vm->pc = (vm->pc - 1) + machine_types_formOffset(instr.immed);
         }
         break;
     case BGTZ_O:
         if (*target_signed > 0)
         {
-            vm->pc += machine_types_formOffset(instr.immed);
+            vm->pc = (vm->pc - 1) + machine_types_formOffset(instr.immed);
         }
         break;
     case BLEZ_O:
         if (*target_signed <= 0)
         {
-            vm->pc += machine_types_formOffset(instr.immed);
+            vm->pc = (vm->pc - 1) + machine_types_formOffset(instr.immed);
         }
         break;
     case BLTZ_O:
         if (*target_signed < 0)
         {
-            vm->pc += machine_types_formOffset(instr.immed);
+            vm->pc = (vm->pc - 1) + machine_types_formOffset(instr.immed);
         }
         break;
     case BNE_O:
         if (*get_p_signed(vm, SP) != *target_signed)
         {
-            vm->pc += machine_types_formOffset(instr.immed);
+            vm->pc = (vm->pc - 1) + machine_types_formOffset(instr.immed);
         }
         break;
     default:
@@ -361,9 +367,8 @@ void vm_run(VM *vm)
         if (tracing)
         {
             vm_print_state(vm);
+            printf("==>      %u: %s\n", vm->pc, instruction_assembly_form(vm->pc, instr));
         }
-
-        printf("==> %u: %s\n", vm->pc, instruction_assembly_form(vm->pc, instr));
 
         vm->pc++;
 
@@ -425,7 +430,7 @@ void vm_print_ls_words(VM *vm)
         printf("%d: %d\t", address, vm->memory.words[address]);
         count++;
 
-        if (count % 5 == 0) // return it to 5 if necessary
+        if (count % 5 == 0)
         {
             printf("\n");
             printf("    ");
