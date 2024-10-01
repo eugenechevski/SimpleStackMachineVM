@@ -15,16 +15,19 @@
 #define FP 2  // Frame Pointer
 #define RA 7  // Return Address
 typedef struct {
-    word_type memory[MEMORY_SIZE_IN_WORDS];
+    union {
+        word_type words[MEMORY_SIZE_IN_WORDS];
+        uword_type uwords[MEMORY_SIZE_IN_WORDS];
+        bin_instr_t instrs[MEMORY_SIZE_IN_WORDS];
+    } memory;
     word_type registers[NUM_REGISTERS];
-    bin_instr_t instructions[MEMORY_SIZE_IN_WORDS];
     word_type pc;
     word_type hi;
     word_type lo;
     word_type data_length;
     word_type text_length;
-    word_type memory_index;
 } VM;
+
 
 void vm_init(VM *vm);
 void vm_load_program(VM *vm, BOFFILE bf);
