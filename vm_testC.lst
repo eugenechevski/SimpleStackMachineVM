@@ -1,0 +1,23 @@
+Address Instruction
+     0: SRI $sp, 1
+     1: LIT $sp, 0, 1
+     2: SLL $sp, 0, 30
+     3: SUB $sp, 0, $gp, 0
+     4: BEQ $gp, 7, 2	# target is word address 6
+     5: JMPA 16	# target is word address 16
+     6: MUL $sp, 0
+     7: CFHI $sp, 0
+     8: BEQ $gp, 8, 2	# target is word address 10
+     9: JMPA 16	# target is word address 16
+    10: CFLO $sp, 0
+    11: BEQ $gp, 9, 2	# target is word address 13
+    12: JMPA 16	# target is word address 16
+    13: NOTR 
+    14: PSTR $gp, 4
+    15: EXIT 0
+    16: PSTR $gp, 1
+    17: EXIT 1
+    4096: 1	    4097: 1852797527	    4098: 663911	    4099: 0	
+    4100: 1936941392	    4101: 169960549	    4102: 0	    4103: 1073741823	
+    4104: 268435455	    4105: -2147483647	    4106: 0	        ...     
+

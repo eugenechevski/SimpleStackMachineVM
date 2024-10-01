@@ -1,4 +1,4 @@
-/* $Id: lexer.c,v 1.25 2024/08/28 21:25:00 leavens Exp $ */
+/* $Id: lexer.c,v 1.26 2024/09/25 19:47:36 leavens Exp leavens $ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -39,7 +39,7 @@ op_code lexer_token2opcode(int toknum)
 	ret = OTHC_O;
 	break;
     // system call op codes
-    case exitopsym: case pstropsym:
+    case exitopsym: case pstropsym: case pintopsym:
     case pchopsym: case rchopsym: case straopsym: case notropsym:
 	ret = OTHC_O;  // opcode is OTHC_O for these
 	break;
@@ -179,7 +179,7 @@ func_type lexer_token2func(int toknum)
     case jrelopsym:
 	ret = JREL_F;
 	break;
-    case exitopsym: case pstropsym: case pchopsym:
+    case exitopsym: case pstropsym: case pintopsym: case pchopsym:
     case rchopsym: case straopsym: case notropsym:
 	ret = SYS_F;
 	break;
@@ -202,6 +202,9 @@ syscall_type lexer_token2syscall_code(int toknum)
 	break;
     case pstropsym:
 	ret = print_str_sc;
+	break;
+    case pintopsym:
+	ret = print_int_sc;
 	break;
     case pchopsym:
 	ret = print_char_sc;

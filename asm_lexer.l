@@ -1,4 +1,4 @@
-/* $Id: asm_lexer.l,v 1.54 2024/08/28 21:25:00 leavens Exp $ */
+/* $Id: asm_lexer.l,v 1.57 2024/09/25 18:49:34 leavens Exp $ */
 /* Scanner for the SSM Assembly Language */
 
 %option header-file = "asm_lexer.h"
@@ -79,7 +79,7 @@ static void ident2ast(const char *name) {
     yylval = t;
 }
 
-static void unsignednum2ast(unsigned short val)
+static void unsignednum2ast(unsigned int val)
 {
     AST t;
     t.unsignednum.file_loc = file_location_make(filename, yylineno);
@@ -216,6 +216,7 @@ CALL            { BEGIN INSTRUCTION; tok2ast(callopsym); return callopsym; }
 RTN             { BEGIN INSTRUCTION; tok2ast(rtnopsym); return rtnopsym; }
 EXIT            { BEGIN INSTRUCTION; tok2ast(exitopsym); return exitopsym; }
 PSTR            { BEGIN INSTRUCTION; tok2ast(pstropsym); return pstropsym; }
+PINT            { BEGIN INSTRUCTION; tok2ast(pintopsym); return pintopsym; }
 PCH             { BEGIN INSTRUCTION; tok2ast(pchopsym); return pchopsym; }
 RCH             { BEGIN INSTRUCTION; tok2ast(rchopsym); return rchopsym; }
 STRA            { BEGIN INSTRUCTION; tok2ast(straopsym); return straopsym; }
@@ -241,28 +242,28 @@ STRING          { BEGIN DATADECL; tok2ast(stringsym); return stringsym; }
 '{CHARCODE}'    { charliteral2ast(); return charliteralsym; }
 \"{STRINGCHAR}*\"  { stringliteral2ast(); return stringliteralsym; }
 
-{UNSIGNEDNUMBER} { unsigned short val;
+{UNSIGNEDNUMBER} { unsigned int val;
                   int ssf_ret;
                   size_t len = strlen(yytext);
                   if (yyleng >= 2 && (strncmp(yytext, "0x", 2) == 0)) {
                       // hex literal
-                      if (len > 6) {
+                      if (len > 8+2) {
                           bail_with_error(
                              "Unsigned literal has too many digits \"%s\"", 
                              yytext);
                       }
-                      ssf_ret = sscanf(yytext+2, "%hx", &val);
+                      ssf_ret = sscanf(yytext+2, "%x", &val);
                       if (ssf_ret != 1) {
                          bail_with_error("Unsigned hex literal (%s) could not be read by lexer!",
                          yytext);
                       }
                   } else {
-                      if (len > 5) {
+                      if (len > 10) {  // 2^32 has 10 digits
                          bail_with_error(
                             "Unsigned decimal literal has too many digits \"%s\"", 
                             yytext);
                       }
-                      ssf_ret = sscanf(yytext, "%hu", &val);
+                      ssf_ret = sscanf(yytext, "%du", &val);
                       if (ssf_ret != 1) {
                          bail_with_error("Unsigned decimal literal (%s) could not be read by lexer!",
                          yytext);

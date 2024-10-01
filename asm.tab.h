@@ -124,16 +124,17 @@ extern void yyerror(const char *filename, const char *msg);
     rtnopsym = 310,                /* "RTN"  */
     exitopsym = 311,               /* "EXIT"  */
     pstropsym = 312,               /* "PSTR"  */
-    pchopsym = 313,                /* "PCH"  */
-    rchopsym = 314,                /* "RCH"  */
-    straopsym = 315,               /* "STRA"  */
-    notropsym = 316,               /* "NOTR"  */
-    regsym = 317,                  /* regsym  */
-    wordsym = 318,                 /* "WORD"  */
-    charsym = 319,                 /* "CHAR"  */
-    stringsym = 320,               /* "STRING"  */
-    charliteralsym = 321,          /* charliteralsym  */
-    stringliteralsym = 322         /* stringliteralsym  */
+    pintopsym = 313,               /* "PINT"  */
+    pchopsym = 314,                /* "PCH"  */
+    rchopsym = 315,                /* "RCH"  */
+    straopsym = 316,               /* "STRA"  */
+    notropsym = 317,               /* "NOTR"  */
+    regsym = 318,                  /* regsym  */
+    wordsym = 319,                 /* "WORD"  */
+    charsym = 320,                 /* "CHAR"  */
+    stringsym = 321,               /* "STRING"  */
+    charliteralsym = 322,          /* charliteralsym  */
+    stringliteralsym = 323         /* stringliteralsym  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif

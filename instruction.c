@@ -1,4 +1,4 @@
-// $Id: instruction.c,v 1.57 2024/08/29 21:58:39 leavens Exp $
+// $Id: instruction.c,v 1.59 2024/09/25 18:53:32 leavens Exp $
 #include <errno.h>
 #include <string.h>
 #include "bof.h"
@@ -361,7 +361,8 @@ const char *instruction_assembly_form(address_type addr,
 	case exit_sc:
 	    sprintf(buf, "%hd", instr.syscall.offset);
 	    break;
-	case print_str_sc: case print_char_sc: case read_char_sc:
+	case print_str_sc: case print_int_sc:
+	case print_char_sc: case read_char_sc:
 	    sprintf(buf, "%s, %hd", regname_get(instr.syscall.reg),
 		    instr.syscall.offset);
 	    break;
@@ -401,6 +402,9 @@ const char *instruction_syscall_mnemonic(syscall_type code)
 	break;
     case print_str_sc:
 	return "PSTR";
+	break;
+    case print_int_sc:
+	return "PINT";
 	break;
     case print_char_sc:
 	return "PCH";
@@ -544,6 +548,9 @@ syscall_type instruction_token2SyscallCode(int toknum)
 	break;
     case pstropsym:
 	return print_str_sc;
+	break;
+    case pintopsym:
+	return print_int_sc;
 	break;
     case pchopsym:
 	return print_char_sc;

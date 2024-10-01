@@ -1,4 +1,4 @@
-// $Id: instruction.h,v 1.37 2024/08/29 21:58:39 leavens Exp $
+// $Id: instruction.h,v 1.38 2024/09/25 18:49:34 leavens Exp $
 #ifndef _INSTRUCTION_H
 #define _INSTRUCTION_H
 #include <stdio.h>
@@ -32,7 +32,7 @@ typedef enum {comp_instr_type, other_comp_instr_type,
              } instr_type;
 
 // system calls
-typedef enum {exit_sc = 1, print_str_sc = 2,
+typedef enum {exit_sc = 1, print_str_sc = 2, print_int_sc = 3,
 	      print_char_sc = 4, read_char_sc = 5,
 	      start_tracing_sc = 2046, stop_tracing_sc = 2047
 } syscall_type;

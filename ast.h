@@ -1,4 +1,4 @@
-/* $Id: ast.h,v 1.34 2024/07/28 22:01:51 leavens Exp $ */
+/* $Id: ast.h,v 1.35 2024/09/25 15:45:15 leavens Exp $ */
 #ifndef _AST_H
 #define _AST_H
 #include <stdbool.h>
@@ -58,7 +58,7 @@ typedef struct {
     file_location *file_loc;
     AST_type type_tag;
     const char *text;
-    unsigned short value;
+    uword_type value;
 } ast_unsignednum_t;
 
 // registers

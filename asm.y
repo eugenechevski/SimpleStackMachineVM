@@ -1,4 +1,4 @@
- /* $Id: asm.y,v 1.62 2024/08/28 21:25:00 leavens Exp $ */
+ /* $Id: asm.y,v 1.63 2024/09/25 18:41:13 leavens Exp $ */
 
 %code top {
 #include <stdio.h>
@@ -78,6 +78,7 @@ extern void yyerror(const char *filename, const char *msg);
 %token <token> rtnopsym   "RTN"
 %token <token> exitopsym  "EXIT"
 %token <token> pstropsym  "PSTR"
+%token <token> pintopsym  "PINT"
 %token <token> pchopsym   "PCH"
 %token <token> rchopsym   "RCH"
 %token <token> straopsym  "STRA"
@@ -418,7 +419,7 @@ regOffsetSyscall : regOffsetSyscallOp regsym "," offset
 	    }
             ;
 
-regOffsetSyscallOp : "PSTR" | "PCH" | "RCH" ;
+regOffsetSyscallOp : "PSTR" | "PINT" | "PCH" | "RCH" ;
 
 
 noArgSyscall : noArgSyscallOp 
