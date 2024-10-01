@@ -72,7 +72,7 @@ void vm_print_tracing_words(VM *vm)
         printf("%3d: %d         ", address, vm->memory.words[address]);
         count++;
 
-        if (count % 5 == 0) // change back to 4 if necessary
+        if (count % 4 == 0) // change back to 4 if necessary
         {
             printf("\n");
             printf("    ");
