@@ -68,13 +68,12 @@ void vm_print_tracing_words(VM *vm) {
     printf("    ");
 
     while (address < vm->registers[2]) {
-        printf("%3d: %d         ", address, vm->memory.words[address]);
+        printf("%3d: %-10d", address, vm->memory.words[address]);
         count++;
         
-        if (count % 4 == 0)
+        if (count % 5 == 0)
         {
-            printf("\n");
-            printf("    ");
+            printf("\n    ");
         }
         
         if (address < vm->registers[2] - 2 && vm->memory.words[address] == 0 && vm->memory.words[address + 1] == 0) {
@@ -87,14 +86,16 @@ void vm_print_tracing_words(VM *vm) {
         address++;
     }
 
-    printf("\n");
-    printf("    ");
+    printf("\n    ");
     printf("%3d: %d\n\n", address, vm->memory.words[address]);
 }
 
 void vm_print_state(VM *vm)
 {
     printf("      PC: %u\n", vm->pc);
+    if (vm->hi != 0 || vm->lo != 0) {
+        printf("      HI: %d\tLO: %d\n", vm->hi, vm->lo);
+    }
     for (int i = 0; i < NUM_REGISTERS; i++)
     {
         printf("GPR[%s]: %-6d", regname_get(i), vm->registers[i]);
@@ -103,7 +104,6 @@ void vm_print_state(VM *vm)
     }
     printf("\n");
 
-    // Print memory contents (you may want to limit this to relevant sections)
     vm_print_tracing_words(vm);
 }
 
@@ -356,9 +356,8 @@ void vm_run(VM *vm)
         if (tracing)
         {
             vm_print_state(vm);
-        }
-        
-        printf("==> %u: %s\n", vm->pc, instruction_assembly_form(vm->pc, instr));
+            printf("==>      %u: %s\n", vm->pc, instruction_assembly_form(vm->pc, instr));
+        }  
 
         vm->pc++;
 
