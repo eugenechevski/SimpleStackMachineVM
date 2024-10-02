@@ -59,43 +59,86 @@ void vm_load_program(VM *vm, BOFFILE bf)
     vm->registers[0] = header.data_start_address; // $gp
     vm->registers[1] = header.stack_bottom_addr;  // $sp
     vm->registers[2] = header.stack_bottom_addr;  // $fp
-    
 }
 
-void vm_print_tracing_words(VM *vm) {
+void print_words_from_sp(VM *vm)
+{
+    word_type address = vm->registers[1];
+    int count = 0;
+    printf("    ");
+
+    while (address <= vm->registers[2])
+    {
+        printf("%3d: %-10d", address, vm->memory.words[address]);
+        count++;
+
+        if (count % 5 == 0)
+        {
+            printf("\n");
+        }
+        // printf("address: %d     ", address);
+
+        if (address < vm->registers[2] - 1 && vm->memory.words[address] == 0 && vm->memory.words[address + 1] == 0)
+        {
+            printf("...         ");
+            while (vm->memory.words[address] == 0 && vm->memory.words[address + 1] == 0 && address <= vm->registers[2])
+            {
+                address++;
+            }
+        }
+
+        address++;
+    }
+
+    // printf("%3d: %-10d", address, vm->memory.words[address]);
+
+    printf("\n");
+}
+
+void vm_print_tracing_words(VM *vm)
+{
     word_type address = vm->registers[0];
     int count = 0;
     printf("    ");
 
-    while (address < vm->registers[2]) {
+    while (address < vm->registers[1])
+    {
         printf("%3d: %-10d", address, vm->memory.words[address]);
         count++;
-        
+
         if (count % 5 == 0)
         {
             printf("\n    ");
         }
-        
-        if (address < vm->registers[2] - 2 && vm->memory.words[address] == 0 && vm->memory.words[address + 1] == 0) {
+
+        if (address < vm->registers[1] - 2 && vm->memory.words[address] == 0 && vm->memory.words[address + 1] == 0)
+        {
             printf("...         ");
-            while (vm->memory.words[address] == 0 && vm->memory.words[address + 1] == 0 && address < vm->registers[2] - 1) {
+            while (vm->memory.words[address] == 0 && vm->memory.words[address + 1] == 0 && address < vm->registers[2] - 1)
+            {
                 address++;
             }
         }
-        
+
         address++;
     }
 
-    printf("\n    ");
-    printf("%3d: %d\n\n", address, vm->memory.words[address]);
+    printf("\n");
+    // printf("%3d: %d\n\n", address, vm->memory.words[address]);
+    print_words_from_sp(vm);
 }
 
 void vm_print_state(VM *vm)
 {
-    printf("      PC: %u\n", vm->pc);
-    if (vm->hi != 0 || vm->lo != 0) {
-        printf("      HI: %d\tLO: %d\n", vm->hi, vm->lo);
+    if (vm->hi != 0 || vm->lo != 0)
+    {
+        printf("      PC: %u      HI: %d\tLO: %d", vm->pc, vm->hi, vm->lo);
     }
+    else
+    {
+        printf("      PC: %u", vm->pc);
+    }
+    printf("\n");
     for (int i = 0; i < NUM_REGISTERS; i++)
     {
         printf("GPR[%s]: %-6d", regname_get(i), vm->registers[i]);
@@ -106,7 +149,12 @@ void vm_print_state(VM *vm)
 
     vm_print_tracing_words(vm);
 }
-
+uword_type twosComplement(uword_type target)
+{
+    uword_type toConvert = target;
+    target = ~toConvert + 1;
+    return target;
+}
 void vm_execute_comp_instr(VM *vm, comp_instr_t instr)
 {
     word_type *target_signed = get_memory_address_signed(vm, instr.rt, instr.ot);
@@ -168,9 +216,11 @@ void vm_execute_other_comp_instr(VM *vm, other_comp_instr_t instr)
     word_type *sp_signed = get_p_signed(vm, 1);
     uword_type *sp_unsigned = get_p_unsigned(vm, 1);
 
-    union {
+    union
+    {
         int64_t long_val;
-        struct {
+        struct
+        {
             int32_t low;
             int32_t high;
         } parts;
@@ -256,48 +306,48 @@ void vm_execute_immed_instr(VM *vm, immed_instr_t instr)
         *target_unsigned &= machine_types_zeroExt(instr.immed);
         break;
     case BORI_O:
-        *target_unsigned |= machine_types_zeroExt(instr.immed);
+        *target_unsigned |= machine_types_zeroExt(instr.immed) & 0xFFFF;
         break;
     case NORI_O:
         *target_unsigned = ~(*target_unsigned | machine_types_zeroExt(instr.immed));
         break;
     case XORI_O:
-        *target_unsigned ^= machine_types_zeroExt(instr.immed);
+        *target_unsigned ^= machine_types_zeroExt(instr.immed) & 0xFFFF;
         break;
     case BEQ_O:
         if (*get_p_signed(vm, SP) == *target_signed)
         {
-            vm->pc += machine_types_formOffset(instr.immed);
+            vm->pc = (vm->pc - 1) + machine_types_formOffset(instr.immed);
         }
         break;
     case BGEZ_O:
         if (*target_signed >= 0)
         {
-            vm->pc += machine_types_formOffset(instr.immed);
+            vm->pc = (vm->pc - 1) + machine_types_formOffset(instr.immed);
         }
         break;
     case BGTZ_O:
         if (*target_signed > 0)
         {
-            vm->pc += machine_types_formOffset(instr.immed);
+            vm->pc = (vm->pc - 1) + machine_types_formOffset(instr.immed);
         }
         break;
     case BLEZ_O:
         if (*target_signed <= 0)
         {
-            vm->pc += machine_types_formOffset(instr.immed);
+            vm->pc = (vm->pc - 1) + machine_types_formOffset(instr.immed);
         }
         break;
     case BLTZ_O:
         if (*target_signed < 0)
         {
-            vm->pc += machine_types_formOffset(instr.immed);
+            vm->pc = (vm->pc - 1) + machine_types_formOffset(instr.immed);
         }
         break;
     case BNE_O:
         if (*get_p_signed(vm, SP) != *target_signed)
         {
-            vm->pc += machine_types_formOffset(instr.immed);
+            vm->pc = (vm->pc - 1) + machine_types_formOffset(instr.immed);
         }
         break;
     default:
@@ -357,7 +407,7 @@ void vm_run(VM *vm)
         {
             vm_print_state(vm);
             printf("==>      %u: %s\n", vm->pc, instruction_assembly_form(vm->pc, instr));
-        }  
+        }
 
         vm->pc++;
 
@@ -387,7 +437,6 @@ void vm_run(VM *vm)
     }
 }
 
-
 void vm_print_instructions(VM *vm)
 {
     printf("Address Instruction\n");
@@ -415,23 +464,27 @@ void vm_print_ls_words(VM *vm)
     int count = 0;
     printf("    ");
 
-    while (address < vm->registers[2]) {
+    while (address < vm->registers[2])
+    {
+
         printf("%d: %d\t", address, vm->memory.words[address]);
         count++;
-        
+
         if (count % 5 == 0)
         {
             printf("\n");
             printf("    ");
         }
-        
-        if (address < vm->registers[2] - 2 && vm->memory.words[address] == 0 && vm->memory.words[address + 1] == 0) {
+
+        if (address < vm->registers[2] - 2 && vm->memory.words[address] == 0 && vm->memory.words[address + 1] == 0)
+        {
             printf("...         ");
-            while (vm->memory.words[address] == 0 && vm->memory.words[address + 1] == 0 && address < vm->registers[2] - 1) {
+            while (vm->memory.words[address] == 0 && vm->memory.words[address + 1] == 0 && address < vm->registers[2] - 1)
+            {
                 address++;
             }
         }
-        
+
         address++;
     }
 
