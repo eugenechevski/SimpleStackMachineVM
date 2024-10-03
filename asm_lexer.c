@@ -1,6 +1,6 @@
-#line 1 "asm_lexer.c"
+#line 2 "asm_lexer.c"
 
-#line 3 "asm_lexer.c"
+#line 4 "asm_lexer.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -777,7 +777,7 @@ static void stringliteral2ast()
     yylval = t;
 }
 
-#line 780 "asm_lexer.c"
+#line 781 "asm_lexer.c"
 #line 143 "asm_lexer.l"
  /* you can add actual definitions below */
                 /* char codes for char-literals */
@@ -785,7 +785,7 @@ static void stringliteral2ast()
   /* states of the lexer */
 
 
-#line 788 "asm_lexer.c"
+#line 789 "asm_lexer.c"
 
 #define INITIAL 0
 #define INSTRUCTION 1
@@ -1017,7 +1017,7 @@ YY_DECL
 #line 171 "asm_lexer.l"
 
 
-#line 1020 "asm_lexer.c"
+#line 1021 "asm_lexer.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1528,7 +1528,7 @@ YY_RULE_SETUP
 #line 298 "asm_lexer.l"
 ECHO;
 	YY_BREAK
-#line 1531 "asm_lexer.c"
+#line 1532 "asm_lexer.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(INSTRUCTION):
 case YY_STATE_EOF(DATADECL):
